@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+endpoint="${KITT_URL:-http://127.0.0.1:4317}"
+action="${1:-state}"
+shift || true
+case "$action" in
+  state|stop|reset|halt|resume)
+    curl --fail --silent --show-error "$endpoint/$action"
+    ;;
+  watch)
+    curl --fail --silent --show-error --get \
+      --data-urlencode "pid=${1:?Indica el PID}" \
+      --data-urlencode "effect=${2:-heartbeat}" \
+      --data-urlencode "metric=${3:-cpu}" \
+      --data-urlencode "children=${4:-1}" \
+      "$endpoint/watch"
+    ;;
+  label|initials)
+    curl --fail --silent --show-error --get --data-urlencode "enabled=${1:-1}" "$endpoint/label"
+    ;;
+  marquee)
+    curl --fail --silent --show-error --get --data-urlencode "pid=${1:-1}" --data-urlencode "processes=${2:-1}" "$endpoint/marquee"
+    ;;
+  effect|metric|palette)
+    curl --fail --silent --show-error --get --data-urlencode "name=${1:?Indica un valor}" "$endpoint/$action"
+    ;;
+  *)
+    echo "Uso: kitt watch PID [marquee|heartbeat|kitt|vu|peak|scope|waterfall|duplex|disk|comet|equalizer|sparkline|centerVU|digital|signal|wave|radar|particles|breathe|twin] [cpu|disk|network|memory|gpu|energy|threads|switches] [hijos: 1|0] | state | stop | reset | effect NOMBRE | metric NOMBRE | label 1|0 | palette original|amber|red|green|cyan|violet|rainbow | marquee [mostrarPID:1|0] [mostrarProcesos:1|0]" >&2
+    exit 2
+    ;;
+esac
+printf '\n'

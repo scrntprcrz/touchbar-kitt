@@ -1,0 +1,19 @@
+name: macOS checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Model and geometry tests
+        run: ./bin/test-models.sh
+      - name: Compile and verify the signed app
+        run: ./build.sh
+      - name: Verify Xcode project
+        run: xcodebuild -project TouchBarKITT.xcodeproj -scheme TouchBarKITT -configuration Release -derivedDataPath build/xcode CODE_SIGNING_ALLOWED=NO build
+      - name: AppKit rendering and preference tests
+        run: ./bin/test-rendering.sh
